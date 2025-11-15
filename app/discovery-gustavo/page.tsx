@@ -33,7 +33,7 @@ export default function DiscoveryGustavoPage() {
 
     // PRESUPUESTO E INVERSIÓN
     presupuestoAdsMensual: "",
-    inversionPrevia Marketing: "",
+    inversionPreviaMarketing: "",
     inversionDispuestaLanding: "",
     modeloPagoPreferido: "",
     razonModeloPago: "",

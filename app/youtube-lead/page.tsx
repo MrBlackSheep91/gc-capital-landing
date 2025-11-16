@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { YouTubeLeadFormV2 } from "@/components/youtube-lead-form-v2"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
@@ -108,7 +109,9 @@ export default function YouTubeLeadPage() {
             {/* Right: Form */}
             <div className="md:col-span-2">
               <div className="bg-white rounded-lg border border-gray-200 shadow-lg p-8">
-                <YouTubeLeadFormV2 />
+                <Suspense fallback={<p className="text-center text-sm text-gray-500">Cargando formulario...</p>}>
+                  <YouTubeLeadFormV2 />
+                </Suspense>
               </div>
 
               {/* FAQ */}

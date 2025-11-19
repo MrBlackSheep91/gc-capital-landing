@@ -1,19 +1,17 @@
-import { SorteoHero } from "@/components/sorteo/sorteo-hero"
-import { SorteoPremios } from "@/components/sorteo/sorteo-premios"
-import { SorteoEscasez } from "@/components/sorteo/sorteo-escasez"
-import { SorteoProof } from "@/components/sorteo/sorteo-proof"
-import { SorteoCTA } from "@/components/sorteo/sorteo-cta"
-import { SorteoFooter } from "@/components/sorteo/sorteo-footer"
+import { SwingStyleHero } from '@/components/copy-trading-alt/swing-style-hero'
+import { SwingStyleBenefits } from '@/components/copy-trading-alt/swing-style-benefits'
+import { SwingStyleComparison } from '@/components/copy-trading-alt/swing-style-comparison'
+import { SwingStyleCTA } from '@/components/copy-trading-alt/swing-style-cta'
+import { SwingStyleFooter } from '@/components/copy-trading-alt/swing-style-footer'
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-white">
-      <SorteoHero />
-      <SorteoPremios />
-      <SorteoEscasez />
-      <SorteoProof />
-      <SorteoCTA />
-      <SorteoFooter />
+      <SwingStyleHero />
+      <SwingStyleBenefits />
+      <SwingStyleComparison />
+      <SwingStyleCTA />
+      <SwingStyleFooter />
     </main>
   )
 }

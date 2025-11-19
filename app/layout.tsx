@@ -5,13 +5,13 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Sorteo Exclusivo $2,400 USD | Gustavo Contreras - GC Capital",
-  description: "Participa en el sorteo más grande del año. $200 USD en efectivo + Curso VIP + Mentoría 1-1. Únete al grupo de WhatsApp para conocer los pasos. ¡Cupos limitados!",
-  keywords: "sorteo, trading, gustavo contreras, gc capital, premio, whatsapp, curso trading, mentoría",
+  title: "Sistema de Copy Trading Que Generó +$2.4M en Ganancias | Gustavo Contreras",
+  description: "Accede al sistema exacto que uso para generar ganancias consistentes. Robot automático + mentoría personal + comunidad VIP.",
+  keywords: "copy trading, robot trading, Gustavo Contreras, sistema automático, trading rentable, gc capital",
   authors: [{ name: "Gustavo Contreras - GC Capital" }],
   openGraph: {
-    title: "Sorteo Exclusivo $2,400 USD | Gustavo Contreras",
-    description: "$200 USD + Curso VIP + Mentoría. Únete al grupo exclusivo de WhatsApp. ¡Último día!",
+    title: "Sistema de Copy Trading Que Generó +$2.4M en Ganancias",
+    description: "El sistema exacto que uso para generar ganancias consistentes en trading.",
     type: "website",
   },
 }

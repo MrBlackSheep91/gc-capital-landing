@@ -8,19 +8,24 @@ export function SorteoHero() {
     <section className="min-h-screen bg-white flex items-center justify-center px-4 py-20">
       <div className="max-w-4xl mx-auto text-center">
         
-        {/* Live Badge - Estilo copy-trading-alt */}
+        {/* Urgency Badge - Estilo branding */}
         <div className="inline-flex items-center gap-2 bg-red-50 border border-red-200 px-4 py-2 rounded-full mb-8">
           <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
           <span className="text-red-600 font-medium text-sm">
-            SORTEO EXCLUSIVO - ÚLTIMO DÍA
+            ÚLTIMO DÍA - SORTEO CIERRA EN 24 HORAS
           </span>
         </div>
 
-        {/* Main Headline - Estilo copy-trading-alt */}
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-8 leading-tight">
-          Gana $200 USD, 1 Año VIP y{" "}
+        {/* Main Headline - Estilo branding */}
+        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+          <span className="block text-[#c3a455] text-3xl md:text-5xl mb-4">
+            ¡GANA $200 USD REALES!
+          </span>
           <span className="text-[#c3a455]">
-            Mentoría 1-1 Personal
+            + 1 AÑO VIP COMPLETO
+          </span>
+          <span className="block text-2xl md:text-4xl mt-4 text-gray-600">
+            + Mentoría Personal Conmigo
           </span>
         </h1>
 

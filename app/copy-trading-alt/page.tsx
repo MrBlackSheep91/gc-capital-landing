@@ -6,6 +6,7 @@ import { SwingStyleCTA } from '@/components/copy-trading-alt/swing-style-cta'
 import { SwingStyleFooter } from '@/components/copy-trading-alt/swing-style-footer'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   title: 'Sistema de Copy Trading Que Generó +$2.4M en Ganancias | Gustavo Contreras',
   description: 'Accede al sistema exacto que uso para generar ganancias consistentes. Robot automático + mentoría personal + comunidad VIP.',
   keywords: 'copy trading, robot trading, Gustavo Contreras, sistema automático, trading rentable',

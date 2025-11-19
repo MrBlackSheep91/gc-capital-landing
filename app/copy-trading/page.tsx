@@ -11,6 +11,7 @@ import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   title: 'Copy Trading Automático - Gustavo Contreras | GC Capital',
   description: 'Copia automáticamente los trades de Gustavo Contreras. Robot de trading + mentoría + comunidad VIP. Resultados reales sin estar pegado a la pantalla.',
   keywords: 'copy trading, robot trading, Gustavo Contreras, trading automático, forex, inversiones',

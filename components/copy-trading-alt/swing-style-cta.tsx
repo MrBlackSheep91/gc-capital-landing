@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import { Shield, Clock, Users } from "lucide-react"
-import Link from "next/link"
 
 export function SwingStyleCTA() {
   return (
@@ -49,14 +48,13 @@ export function SwingStyleCTA() {
 
         {/* Main CTA Button */}
         <div className="mb-8">
-          <Link href="/lead">
-            <Button
-              size="lg"
-              className="px-16 py-8 bg-[#c3a455] hover:bg-[#9b6829] text-white font-bold rounded-lg text-2xl transition-all duration-300 hover:scale-105"
-            >
-              ACCEDER AL SISTEMA AHORA
-            </Button>
-          </Link>
+          <Button
+            size="lg"
+            className="px-16 py-8 bg-[#c3a455] hover:bg-[#9b6829] text-white font-bold rounded-lg text-2xl transition-all duration-300 hover:scale-105"
+            onClick={() => window.location.href = '/lead'}
+          >
+            ACCEDER AL SISTEMA AHORA
+          </Button>
         </div>
 
         {/* Pricing */}

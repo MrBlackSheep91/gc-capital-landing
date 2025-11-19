@@ -1,7 +1,6 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
 
 export function SwingStyleComparison() {
   return (
@@ -61,14 +60,13 @@ export function SwingStyleComparison() {
         </div>
 
         {/* CTA */}
-        <Link href="/lead">
-          <Button
-            size="lg"
-            className="px-12 py-6 bg-[#c3a455] hover:bg-[#9b6829] text-white font-bold rounded-lg text-xl transition-all duration-300 hover:scale-105"
-          >
-            ACCEDER AL SISTEMA AHORA
-          </Button>
-        </Link>
+        <Button
+          size="lg"
+          className="px-12 py-6 bg-[#c3a455] hover:bg-[#9b6829] text-white font-bold rounded-lg text-xl transition-all duration-300 hover:scale-105"
+          onClick={() => window.location.href = '/lead'}
+        >
+          ACCEDER AL SISTEMA AHORA
+        </Button>
 
       </div>
     </section>

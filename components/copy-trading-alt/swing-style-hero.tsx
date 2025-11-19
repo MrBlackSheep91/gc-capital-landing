@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import { Calendar, Users, TrendingUp } from "lucide-react"
-import Link from "next/link"
 
 export function SwingStyleHero() {
   return (
@@ -33,14 +32,13 @@ export function SwingStyleHero() {
 
         {/* CTA Button */}
         <div className="mb-12">
-          <Link href="/lead">
-            <Button
-              size="lg"
-              className="px-12 py-6 bg-[#c3a455] hover:bg-[#9b6829] text-white font-bold rounded-lg text-xl transition-all duration-300 hover:scale-105"
-            >
-              ACCEDER AL SISTEMA AHORA
-            </Button>
-          </Link>
+          <Button
+            size="lg"
+            className="px-12 py-6 bg-[#c3a455] hover:bg-[#9b6829] text-white font-bold rounded-lg text-xl transition-all duration-300 hover:scale-105"
+            onClick={() => window.location.href = '/lead'}
+          >
+            ACCEDER AL SISTEMA AHORA
+          </Button>
         </div>
 
         {/* Social Proof */}

@@ -40,7 +40,7 @@ export function SorteoHero() {
           <Button
             size="lg"
             className="px-12 py-6 bg-[#c3a455] hover:bg-[#9b6829] text-white font-bold rounded-lg text-xl transition-all duration-300 hover:scale-105"
-            onClick={() => window.location.href = '/lead'}
+            onClick={() => window.location.href = '/lead-simple'}
           >
             ÚNETE AL GRUPO DE WHATSAPP
           </Button>

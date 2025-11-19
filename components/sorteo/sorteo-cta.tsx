@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import { Clock, Users, Gift, Zap, AlertTriangle, CheckCircle } from "lucide-react"
-import { SorteoFormSimple } from "./sorteo-form-simple"
 
 export function SorteoCTA() {
   return (
@@ -159,8 +158,8 @@ export function SorteoCTA() {
           </div>
         </div>
 
-        {/* Final CTA - Formulario Simple */}
-        <div className="text-center mb-8">
+        {/* Final CTA - Botón a lead-simple */}
+        <div className="text-center">
           <div className="mb-8">
             <div className="text-[#c3a455] font-bold text-2xl mb-4">
               ⚡ LA DECISIÓN ES TUYA:
@@ -172,10 +171,15 @@ export function SorteoCTA() {
             </div>
           </div>
           
-          {/* Formulario Simple */}
-          <SorteoFormSimple />
+          <Button
+            size="lg"
+            className="px-12 py-6 bg-[#c3a455] hover:bg-[#9b6829] text-white font-bold rounded-lg text-xl transition-all duration-300 hover:scale-105 mb-6"
+            onClick={() => window.location.href = '/lead-simple'}
+          >
+            🚀 SÍ, QUIERO ENTRAR AL GRUPO AHORA
+          </Button>
           
-          <div className="space-y-2 mt-6">
+          <div className="space-y-2">
             <div className="text-[#c3a455] font-bold text-lg">
               ⚡ Los pasos para participar se explican SOLO dentro
             </div>

@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import { CheckCircle, Clock, Users, Gift } from "lucide-react"
-import { SorteoFormSimple } from "@/components/sorteo/sorteo-form-simple"
 
 export function SorteoSwingStyle() {
   return (
@@ -38,7 +37,7 @@ export function SorteoSwingStyle() {
             <Button
               size="lg"
               className="px-12 py-6 bg-[#c3a455] hover:bg-[#9b6829] text-white font-bold rounded-lg text-xl transition-all duration-300 hover:scale-105"
-              onClick={() => window.location.href = '/lead'}
+              onClick={() => window.location.href = '/lead-simple'}
             >
               ÚNETE AL GRUPO DE WHATSAPP
             </Button>
@@ -146,9 +145,15 @@ export function SorteoSwingStyle() {
             </div>
           </div>
 
-          {/* Final CTA - Formulario Simple */}
+          {/* Final CTA - Botón a lead-simple */}
           <div className="text-center">
-            <SorteoFormSimple />
+            <Button
+              size="lg"
+              className="px-12 py-6 bg-[#c3a455] hover:bg-[#9b6829] text-white font-bold rounded-lg text-xl transition-all duration-300 hover:scale-105"
+              onClick={() => window.location.href = '/lead-simple'}
+            >
+              ÚNETE AL GRUPO DE WHATSAPP
+            </Button>
             <div className="mt-4 text-gray-600">
               Los pasos se explican SOLO dentro del grupo
             </div>

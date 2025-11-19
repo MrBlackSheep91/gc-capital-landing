@@ -5,13 +5,13 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "GC Capital - Copy Trading Dual Strategy | Nasdaq & Oro",
-  description: "Haz crecer tu capital en piloto automático con los mismos bots que generan +10% mensual para traders profesionales. Estrategias probadas en Nasdaq y Oro.",
-  keywords: "copy trading, bot trading, nasdaq, oro, xau, trading automatizado, GC Capital, Gustavo Contreras",
-  authors: [{ name: "GC Capital Global" }],
+  title: "Sorteo Exclusivo $2,400 USD | Gustavo Contreras - GC Capital",
+  description: "Participa en el sorteo más grande del año. $200 USD en efectivo + Curso VIP + Mentoría 1-1. Únete al grupo de WhatsApp para conocer los pasos. ¡Cupos limitados!",
+  keywords: "sorteo, trading, gustavo contreras, gc capital, premio, whatsapp, curso trading, mentoría",
+  authors: [{ name: "Gustavo Contreras - GC Capital" }],
   openGraph: {
-    title: "GC Capital - Copy Trading Dual Strategy",
-    description: "Bots probados en Nasdaq y Oro. 10+ años de experiencia, 92% meses positivos.",
+    title: "Sorteo Exclusivo $2,400 USD | Gustavo Contreras",
+    description: "$200 USD + Curso VIP + Mentoría. Únete al grupo exclusivo de WhatsApp. ¡Último día!",
     type: "website",
   },
 }

@@ -81,11 +81,9 @@ export async function GET(request: NextRequest) {
     
     // Obtener leads del backend
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-    const params = new URLSearchParams({
-      limit: searchParams.get('limit') || '100',
-    })
+    const limit = searchParams.get('limit') || '500'
 
-    const response = await fetch(`${backendUrl}/api/external/gc-capital?${params}`, {
+    const response = await fetch(`${backendUrl}/api/external/gc-capital?limit=${limit}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -93,23 +91,24 @@ export async function GET(request: NextRequest) {
     })
 
     if (!response.ok) {
+      console.error(`Backend error: ${response.status}`)
       throw new Error(`Backend error: ${response.status}`)
     }
 
     const data = await response.json()
 
     return NextResponse.json({
-      leads: data.leads || [],
-      stats: data.stats || [],
+      success: true,
+      data: data.leads || [],
       total: data.total || 0,
     })
   } catch (error) {
     console.error('❌ Error al obtener leads:', error)
     return NextResponse.json(
       { 
+        success: false,
         error: 'Error al obtener leads',
-        leads: [],
-        stats: [],
+        data: [],
         total: 0,
       },
       { status: 500 }

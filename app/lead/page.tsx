@@ -1,4 +1,4 @@
-import { YouTubeLeadFormAutoSave } from "@/components/youtube-lead-form-autosave"
+import { YouTubeLeadFormAutoSaveV2 } from "@/components/youtube-lead-form-autosave-v2"
 import { Suspense } from "react"
 
 export const metadata = {
@@ -14,7 +14,7 @@ function LeadFormContent() {
           <div className="text-white text-xl font-semibold">Cargando...</div>
         </div>
       }>
-        <YouTubeLeadFormAutoSave />
+        <YouTubeLeadFormAutoSaveV2 />
       </Suspense>
     </div>
   )

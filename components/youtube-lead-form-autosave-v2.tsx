@@ -46,7 +46,7 @@ function debounce<T extends (...args: any[]) => any>(func: T, wait: number) {
   }
 }
 
-export function YouTubeLeadFormAutoSave() {
+export function YouTubeLeadFormAutoSaveV2() {
   const searchParams = useSearchParams()
   const [mounted, setMounted] = useState(false)
   const initializingRef = useRef(false)
@@ -73,52 +73,98 @@ export function YouTubeLeadFormAutoSave() {
   const [paisDetectado, setPaisDetectado] = useState("")
   const [saving, setSaving] = useState(false)
   const [submittedFlag, setSubmittedFlag] = useState(false)
+  
+  // Referencias a los inputs para acceder directamente
+  const nombreInputRef = useRef<HTMLInputElement>(null)
+  const emailInputRef = useRef<HTMLInputElement>(null)
+  const whatsappInputRef = useRef<HTMLInputElement>(null)
+  
+  // Cola de guardado para evitar race conditions
+  const saveQueueRef = useRef<Array<{ field: string; value: any }>>([])
+  const isSavingRef = useRef(false)
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Auto-save function (optimizado con debounce más largo)
-  const saveFieldToNeon = useCallback(
-    debounce(async (field: string, value: any) => {
-      if (!leadId) {
-        console.warn('❌ No leadId disponible para guardar campo:', field)
-        return
-      }
-      
-      // Solo guardar si el valor no es null/undefined (permitir strings vacíos y otros valores falsy)
-      if (value === null || value === undefined) {
-        return
-      }
-      
+  // Procesar cola de guardado (uno por uno, sin solapamientos)
+  const processSaveQueue = useCallback(async () => {
+    if (isSavingRef.current || !leadId || saveQueueRef.current.length === 0) {
+      return
+    }
+
+    isSavingRef.current = true
+    const { field, value } = saveQueueRef.current.shift()!
+
+    try {
       console.log('💾 Guardando campo:', field, '=', value, 'para leadId:', leadId)
-      setSaving(true)
-      try {
-        const response = await fetch("/api/leads", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            leadId,
-            field,
-            value,
-          }),
-        })
-        
-        if (response.ok) {
-          console.log('✅ Campo guardado exitosamente:', field)
-        } else {
-          console.error('❌ Error al guardar campo:', response.status)
-        }
-      } catch (error) {
-        console.error("Error saving field:", error)
-      } finally {
+      const response = await fetch("/api/leads", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadId,
+          field,
+          value,
+        }),
+      })
+
+      if (response.ok) {
+        console.log('✅ Campo guardado exitosamente:', field)
+      } else {
+        console.error('❌ Error al guardar campo:', response.status)
+        // Re-agregar a la cola si falla
+        saveQueueRef.current.unshift({ field, value })
+      }
+    } catch (error) {
+      console.error("Error saving field:", error)
+      // Re-agregar a la cola si falla
+      saveQueueRef.current.unshift({ field, value })
+    } finally {
+      isSavingRef.current = false
+
+      // Procesar siguiente item en la cola
+      if (saveQueueRef.current.length > 0) {
+        processSaveQueue()
+      } else {
         setSaving(false)
       }
-    }, 1000), // Aumentar debounce a 1 segundo para reducir llamadas
-    [leadId]
-  )
+    }
+  }, [leadId])
+
+  // Agregar campo a la cola de guardado (con debounce)
+  const saveFieldToNeon = useCallback((field: string, value: any) => {
+    if (!leadId) {
+      console.warn('❌ No leadId disponible para guardar campo:', field)
+      return
+    }
+
+    if (value === null || value === undefined) {
+      return
+    }
+
+    // Limpiar timeout anterior
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+    }
+
+    // Agregar a la cola
+    saveQueueRef.current.push({ field, value })
+    setSaving(true)
+
+    // Procesar después de debounce
+    saveTimeoutRef.current = setTimeout(() => {
+      processSaveQueue()
+    }, 500) // Debounce más corto ahora que tenemos cola
+  }, [leadId, processSaveQueue])
+
+  // Marcar como montado después del primer render
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Initialize lead on mount (solo una vez)
   useEffect(() => {
-    if (leadId || initializingRef.current) return // Si ya tenemos leadId o estamos inicializando, no crear otro
+    // Solo ejecutar si está montado y no hay leadId
+    if (!mounted || leadId || initializingRef.current) return
     
-    initializingRef.current = true // Marcar que estamos inicializando
+    initializingRef.current = true
 
     const initializeLead = async () => {
       try {
@@ -154,38 +200,39 @@ export function YouTubeLeadFormAutoSave() {
           whatsapp: urlWhatsapp 
         }))
 
-        // Create lead in NEON (solo si no existe leadId)
-        if (!leadId) {
-          const response = await fetch("/api/leads", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              nombre: urlNombre,
-              email: urlEmail,
-              whatsapp: urlWhatsapp,
-              utm_source: searchParams.get("utm_source") || "youtube",
-              utm_campaign: searchParams.get("utm_campaign") || null,
-              utm_medium: searchParams.get("utm_medium") || "video",
-              pais: geoData.country_code,
-            }),
-          })
+        // Create lead in NEON
+        console.log('🆕 Creando nuevo lead...')
+        const response = await fetch("/api/leads", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nombre: urlNombre,
+            email: urlEmail,
+            whatsapp: urlWhatsapp,
+            utm_source: searchParams.get("utm_source") || "youtube",
+            utm_campaign: searchParams.get("utm_campaign") || null,
+            utm_medium: searchParams.get("utm_medium") || "video",
+            pais: geoData.country_code,
+          }),
+        })
 
-          if (response.ok) {
-            const data = await response.json()
-            console.log('✅ Lead creado:', data)
-            setLeadId(data.data?.leadId || data.leadId)
-          }
+        if (response.ok) {
+          const data = await response.json()
+          const newLeadId = data.data?.leadId || data.leadId
+          console.log('✅ Lead creado:', newLeadId)
+          setLeadId(newLeadId)
+        } else {
+          console.error('❌ Error creando lead:', response.status)
         }
       } catch (error) {
-        console.log("Error initializing lead:", error)
+        console.error("Error initializing lead:", error)
       } finally {
-        initializingRef.current = false // Reset flag al terminar
+        initializingRef.current = false
       }
     }
 
     initializeLead()
-    setMounted(true)
-  }, [])
+  }, [mounted]) // Solo depende de mounted
 
   const handleFieldChange = (field: keyof FormData, value: any) => {
     setFormData(prev => {
@@ -213,10 +260,8 @@ export function YouTubeLeadFormAutoSave() {
 
   const handleNextStep = async () => {
     if (currentStep < 5) {
-      // Guardar TODOS los campos pendientes antes de cambiar de paso
       setSaving(true)
       try {
-        // Dar tiempo para que el debounce complete
         await new Promise(resolve => setTimeout(resolve, 1200))
       } finally {
         setSaving(false)
@@ -234,10 +279,8 @@ export function YouTubeLeadFormAutoSave() {
   }
 
   const handleWhatsAppClick = async () => {
-    // Trackear que el lead hizo clic en WhatsApp
     if (leadId) {
       try {
-        // Primero marcar que accedió al grupo
         await fetch("/api/leads", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -248,7 +291,6 @@ export function YouTubeLeadFormAutoSave() {
           }),
         })
         
-        // Luego marcar la fecha
         await fetch("/api/leads", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -262,7 +304,6 @@ export function YouTubeLeadFormAutoSave() {
         console.error("Error tracking WhatsApp click:", error)
       }
     }
-    // Abrir el link
     window.open(WHATSAPP_GROUP_LINK, "_blank")
   }
 
@@ -314,7 +355,6 @@ export function YouTubeLeadFormAutoSave() {
               style={{ width: `${(currentStep / 5) * 100}%` }}
             />
           </div>
-          {saving && <p className="text-xs text-gray-400 mt-2">Guardando...</p>}
         </div>
 
         {/* STEP 1: Datos Básicos */}
@@ -329,6 +369,7 @@ export function YouTubeLeadFormAutoSave() {
                 Nombre completo
               </label>
               <Input
+                ref={nombreInputRef}
                 value={formData.nombre}
                 onChange={(e) => handleFieldChange("nombre", e.target.value)}
                 className="bg-[#1a1a1a] border-[#c2a255]/30 text-white"
@@ -344,6 +385,7 @@ export function YouTubeLeadFormAutoSave() {
                 Email
               </label>
               <Input
+                ref={emailInputRef}
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleFieldChange("email", e.target.value)}
@@ -360,6 +402,7 @@ export function YouTubeLeadFormAutoSave() {
                 WhatsApp
               </label>
               <Input
+                ref={whatsappInputRef}
                 type="tel"
                 value={formData.whatsapp}
                 onChange={(e) => handleFieldChange("whatsapp", e.target.value)}
@@ -394,10 +437,8 @@ export function YouTubeLeadFormAutoSave() {
               <div className="space-y-3">
                 {[
                   { value: "aprender", label: "Aprender a operar" },
-                  { value: "copy_trading", label: "Invertir en automático (copy trading)" },
-                  { value: "comunidad", label: "Unirme a una comunidad" },
-                  { value: "mentoria", label: "Obtener una mentoría" },
-                  { value: "estrategia", label: "Encontrar una estrategia ganadora" },
+                  { value: "copy_trading", label: "Copy Trading" },
+                  { value: "mentoria", label: "Mentoría 1-1" },
                 ].map((option) => (
                   <label
                     key={option.value}

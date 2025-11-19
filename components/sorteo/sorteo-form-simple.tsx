@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -10,10 +10,42 @@ export function SorteoFormSimple() {
   const [formData, setFormData] = useState({
     nombre: "",
     email: "",
-    telefono: "",
+    whatsapp: "",
   })
+  const [paisDetectado, setPaisDetectado] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
+
+  // Captura automática del país y código de área
+  useEffect(() => {
+    const detectCountry = async () => {
+      try {
+        const geoResponse = await fetch("https://ipapi.co/json/")
+        const geoData = await geoResponse.json()
+        setPaisDetectado(geoData.country_code)
+        
+        const countryDialCodes: Record<string, string> = {
+          UY: "+598 ",
+          AR: "+54 ",
+          CL: "+56 ",
+          BR: "+55 ",
+          MX: "+52 ",
+          CO: "+57 ",
+          ES: "+34 ",
+          US: "+1 ",
+        }
+        
+        const dialCode = countryDialCodes[geoData.country_code] || ""
+        if (dialCode) {
+          setFormData(prev => ({ ...prev, whatsapp: dialCode }))
+        }
+      } catch (error) {
+        console.error("Error detectando país:", error)
+      }
+    }
+    
+    detectCountry()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,8 +59,10 @@ export function SorteoFormSimple() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          source: "sorteo",
-          interest: ["sorteo"],
+          pais: paisDetectado,
+          utm_source: "sorteo",
+          utm_medium: "landing",
+          intereses: ["sorteo"],
         }),
       })
 
@@ -86,9 +120,9 @@ export function SorteoFormSimple() {
           <Input
             type="tel"
             placeholder="Tu WhatsApp (con código de país)"
-            value={formData.telefono}
+            value={formData.whatsapp}
             onChange={(e) =>
-              setFormData({ ...formData, telefono: e.target.value })
+              setFormData({ ...formData, whatsapp: e.target.value })
             }
             required
             className="border-gray-300 focus:border-[#c3a455]"

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 export default function SorteoPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-red-900 via-red-800 to-black">
+    <main className="min-h-screen bg-white">
       <SorteoHero />
       <SorteoPremios />
       <SorteoEscasez />

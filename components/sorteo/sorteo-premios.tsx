@@ -4,21 +4,14 @@ import { DollarSign, Crown, Users, Target, TrendingUp, Zap } from "lucide-react"
 
 export function SorteoPremios() {
   return (
-    <section className="py-20 bg-black/50 backdrop-blur-sm">
-      <div className="max-w-6xl mx-auto px-4">
+    <section className="py-20 bg-gray-50">
+      <div className="max-w-4xl mx-auto px-4">
         
-        {/* Header */}
+        {/* Header - Estilo copy-trading-alt */}
         <div className="text-center mb-16">
-          <div className="text-yellow-400 font-bold text-lg mb-4">
-            🎯 ESTO ES LO QUE VAS A GANAR...
-          </div>
-          <h2 className="text-4xl md:text-6xl font-black text-white mb-6">
-            <span className="text-yellow-400">$2,400</span> en Premios
+          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
+            Lo Que Obtendrás:
           </h2>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            <strong className="text-white">No es broma.</strong> Estos son premios REALES que voy a entregar 
-            a los ganadores del grupo exclusivo. <strong className="text-yellow-400">Valor total: $2,400 USD</strong>
-          </p>
         </div>
 
         {/* Premios Grid - Técnica de Value Stack de Hormozi */}

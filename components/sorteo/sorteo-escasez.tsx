@@ -6,24 +6,33 @@ import { Button } from "@/components/ui/button"
 
 export function SorteoEscasez() {
   const [timeLeft, setTimeLeft] = useState({
-    hours: 23,
-    minutes: 47,
-    seconds: 32
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0
   })
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1 }
-        } else if (prev.minutes > 0) {
-          return { ...prev, minutes: prev.minutes - 1, seconds: 59 }
-        } else if (prev.hours > 0) {
-          return { hours: prev.hours - 1, minutes: 59, seconds: 59 }
-        }
-        return prev
-      })
-    }, 1000)
+    const calculateTimeLeft = () => {
+      // Fecha del sorteo: 30 de Noviembre 2024 a las 8 PM (UTC-3)
+      const targetDate = new Date('2024-11-30T20:00:00-03:00')
+      const now = new Date()
+      const difference = targetDate.getTime() - now.getTime()
+
+      if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24))
+        const hours = Math.floor((difference / (1000 * 60 * 60)) % 24)
+        const minutes = Math.floor((difference / 1000 / 60) % 60)
+        const seconds = Math.floor((difference / 1000) % 60)
+
+        setTimeLeft({ days, hours, minutes, seconds })
+      } else {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+      }
+    }
+
+    calculateTimeLeft()
+    const timer = setInterval(calculateTimeLeft, 1000)
 
     return () => clearInterval(timer)
   }, [])
@@ -42,15 +51,15 @@ export function SorteoEscasez() {
           </div>
           
           <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            <span className="text-[#c3a455]">SOLO QUEDAN</span>
+            <span className="text-[#c3a455]">SORTEO</span>
             <br />
-            <span className="text-gray-900">24 HORAS</span>
+            <span className="text-gray-900">30 DE NOVIEMBRE</span>
           </h2>
           
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Después de esto, <strong className="text-red-600">SE CIERRA PARA SIEMPRE.</strong> 
-            No habrá segunda oportunidad. <strong className="text-gray-900">Los pasos para participar 
-            se explican SOLO dentro del grupo secreto.</strong>
+            El sorteo se realiza el <strong className="text-[#c3a455]">30 de Noviembre a las 8 PM.</strong> 
+            Cupos limitados. <strong className="text-gray-900">Los pasos para participar 
+            se explican SOLO dentro del grupo exclusivo de WhatsApp.</strong>
           </p>
         </div>
 
@@ -60,7 +69,11 @@ export function SorteoEscasez() {
             <h3 className="text-2xl font-bold text-gray-900 mb-4">
               ⏰ TIEMPO RESTANTE PARA ENTRAR:
             </h3>
-            <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
+            <div className="grid grid-cols-4 gap-4 max-w-2xl mx-auto">
+              <div className="bg-white border border-gray-200 rounded-xl p-4 shadow">
+                <div className="text-4xl font-black text-[#c3a455]">{timeLeft.days}</div>
+                <div className="text-gray-600 text-sm font-semibold">DÍAS</div>
+              </div>
               <div className="bg-white border border-gray-200 rounded-xl p-4 shadow">
                 <div className="text-4xl font-black text-[#c3a455]">{timeLeft.hours.toString().padStart(2, '0')}</div>
                 <div className="text-gray-600 text-sm font-semibold">HORAS</div>
@@ -87,7 +100,7 @@ export function SorteoEscasez() {
             </h3>
             <p className="text-gray-600 leading-relaxed">
               Solo puedo manejar <strong className="text-gray-900">100 personas más</strong> en el grupo. 
-              Después de eso, se cierra automáticamente. <strong className="text-red-600">Ya van 847 dentro.</strong>
+              Una vez lleno, se cierra automáticamente. <strong className="text-[#c3a455]">Cupos limitados.</strong>
             </p>
           </div>
 
@@ -149,8 +162,8 @@ export function SorteoEscasez() {
             🔥 ENTRAR AL GRUPO AHORA
           </Button>
           
-          <div className="mt-4 text-red-600 font-semibold text-sm">
-            ⚠️ Después de 24 horas, se cierra para siempre
+          <div className="mt-4 text-[#c3a455] font-semibold text-sm">
+            🎯 Sorteo: 30 de Noviembre a las 8 PM
           </div>
         </div>
 

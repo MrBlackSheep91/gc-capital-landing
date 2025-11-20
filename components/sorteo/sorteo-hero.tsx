@@ -12,7 +12,7 @@ export function SorteoHero() {
         <div className="inline-flex items-center gap-2 bg-red-50 border border-red-200 px-4 py-2 rounded-full mb-8">
           <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
           <span className="text-red-600 font-medium text-sm">
-            ÚLTIMO DÍA - SORTEO CIERRA EN 24 HORAS
+            SORTEO EXCLUSIVO - CUPOS LIMITADOS
           </span>
         </div>
 
@@ -77,9 +77,9 @@ export function SorteoHero() {
           {/* CUÁNDO */}
           <div className="text-center">
             <div className="text-sm font-bold text-[#c3a455] mb-2">CUÁNDO</div>
-            <div className="text-lg font-semibold text-gray-900 mb-2">Último Día</div>
+            <div className="text-lg font-semibold text-gray-900 mb-2">30 de Noviembre</div>
             <div className="text-gray-600 text-sm">
-              El sorteo se cierra en 24 horas. No habrá segunda oportunidad.
+              El sorteo se realiza el 30 de Noviembre a las 8 PM. Cupos limitados.
             </div>
           </div>
 

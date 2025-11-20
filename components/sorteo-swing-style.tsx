@@ -14,7 +14,7 @@ export function SorteoSwingStyle() {
           <div className="inline-flex items-center gap-2 bg-red-50 border border-red-200 px-4 py-2 rounded-full mb-8">
             <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
             <span className="text-red-600 font-medium text-sm">
-              SORTEO EXCLUSIVO - ÚLTIMO DÍA
+              SORTEO EXCLUSIVO - CUPOS LIMITADOS
             </span>
           </div>
 

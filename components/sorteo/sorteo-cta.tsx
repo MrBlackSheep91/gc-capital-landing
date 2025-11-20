@@ -183,8 +183,8 @@ export function SorteoCTA() {
             <div className="text-[#c3a455] font-bold text-lg">
               ⚡ Los pasos para participar se explican SOLO dentro
             </div>
-            <div className="text-red-600 font-semibold">
-              ⚠️ Después de 24 horas, se cierra para siempre
+            <div className="text-[#c3a455] font-semibold">
+              🎯 Sorteo: 30 de Noviembre a las 8 PM
             </div>
             <div className="text-gray-600 text-sm">
               No necesitas tarjeta de crédito • Acceso inmediato • Solo 100 cupos más

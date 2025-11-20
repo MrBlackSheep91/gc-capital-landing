@@ -14,8 +14,8 @@ export function SorteoEscasez() {
 
   useEffect(() => {
     const calculateTimeLeft = () => {
-      // Fecha del sorteo: 30 de Noviembre 2024 a las 8 PM (UTC-3)
-      const targetDate = new Date('2024-11-30T20:00:00-03:00')
+      // Fecha del sorteo: 30 de Noviembre 2025 a las 20:00 (UTC-3)
+      const targetDate = new Date('2025-11-30T20:00:00-03:00')
       const now = new Date()
       const difference = targetDate.getTime() - now.getTime()
 

@@ -187,7 +187,7 @@ export function SorteoSwingStyle() {
           <div className="text-gray-400 text-sm">
             © 2024 Gustavo Contreras. Todos los derechos reservados.
             <br />
-            Sorteo válido hasta el 30 de Noviembre 2024 a las 8:00 PM (UTC-3)
+            Sorteo válido hasta el 30 de Noviembre 2025 a las 20:00 hs (UTC-3)
           </div>
 
         </div>

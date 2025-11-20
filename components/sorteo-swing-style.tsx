@@ -74,9 +74,9 @@ export function SorteoSwingStyle() {
             {/* CUÁNDO */}
             <div className="text-center">
               <div className="text-sm font-bold text-[#c3a455] mb-2">CUÁNDO</div>
-              <div className="text-lg font-semibold text-gray-900 mb-2">Último Día</div>
+              <div className="text-lg font-semibold text-gray-900 mb-2">30 de Noviembre</div>
               <div className="text-gray-600 text-sm">
-                El sorteo se cierra en 24 horas. No habrá segunda oportunidad.
+                El sorteo se realiza el 30 de Noviembre a las 8 PM. No habrá segunda oportunidad.
               </div>
             </div>
 
@@ -186,6 +186,8 @@ export function SorteoSwingStyle() {
           {/* Copyright */}
           <div className="text-gray-400 text-sm">
             © 2024 Gustavo Contreras. Todos los derechos reservados.
+            <br />
+            Sorteo válido hasta el 30 de Noviembre 2024 a las 8:00 PM (UTC-3)
           </div>
 
         </div>

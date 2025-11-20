@@ -97,7 +97,7 @@ export function SorteoEscasez() {
               ⏰ FECHA LÍMITE REAL
             </h3>
             <p className="text-gray-600 leading-relaxed">
-              El sorteo se hace <strong className="text-gray-900">mañana a las 8 PM</strong> en vivo. 
+              El sorteo se hace el <strong className="text-gray-900">30 de Noviembre a las 8 PM</strong> en vivo. 
               Si no estás en el grupo antes, <strong className="text-red-600">no puedes participar.</strong>
             </p>
           </div>

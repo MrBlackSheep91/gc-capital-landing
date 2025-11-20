@@ -21,7 +21,7 @@ export function SorteoFooter() {
             🚨 RECORDATORIO FINAL:
           </div>
           <div className="text-gray-900 text-lg">
-            El sorteo se realiza <strong className="text-[#c3a455]">mañana a las 8 PM</strong> en vivo.
+            El sorteo se realiza el <strong className="text-[#c3a455]">30 de Noviembre a las 8 PM</strong> en vivo.
             <br />
             Si no estás en el grupo, <strong className="text-red-600">no puedes participar.</strong>
           </div>
@@ -41,7 +41,7 @@ export function SorteoFooter() {
         <div className="text-gray-400 text-sm">
           © 2024 Gustavo Contreras. Todos los derechos reservados.
           <br />
-          Sorteo válido hasta el 20 de Noviembre 2024 a las 8:00 PM (UTC-3)
+          Sorteo válido hasta el 30 de Noviembre 2024 a las 8:00 PM (UTC-3)
         </div>
 
       </div>

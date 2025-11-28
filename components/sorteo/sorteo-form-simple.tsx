@@ -1,12 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 const WHATSAPP_GROUP_LINK = "https://chat.whatsapp.com/FKt1s873osJDnubIxrdKIT"
 
 export function SorteoFormSimple() {
+  const searchParams = useSearchParams()
+
   const [formData, setFormData] = useState({
     nombre: "",
     email: "",
@@ -16,14 +19,38 @@ export function SorteoFormSimple() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
 
-  // Captura automática del país y código de área
+  // Capturar UTM params de la URL
+  const [utmData, setUtmData] = useState({
+    utm_source: "sorteo",
+    utm_medium: "landing",
+    utm_campaign: null as string | null,
+  })
+
+  // Captura de UTM params y país
   useEffect(() => {
+    // Capturar UTMs de la URL (si vienen de un video de YouTube, etc.)
+    const urlSource = searchParams.get("utm_source")
+    const urlMedium = searchParams.get("utm_medium")
+    const urlCampaign = searchParams.get("utm_campaign")
+
+    setUtmData({
+      utm_source: urlSource || "sorteo",
+      utm_medium: urlMedium || "landing",
+      utm_campaign: urlCampaign,
+    })
+
+    // Log para debugging
+    if (urlCampaign) {
+      console.log("📍 UTM Campaign detectada:", urlCampaign)
+    }
+
+    // Detectar país
     const detectCountry = async () => {
       try {
         const geoResponse = await fetch("https://ipapi.co/json/")
         const geoData = await geoResponse.json()
         setPaisDetectado(geoData.country_code)
-        
+
         const countryDialCodes: Record<string, string> = {
           UY: "+598 ",
           AR: "+54 ",
@@ -34,7 +61,7 @@ export function SorteoFormSimple() {
           ES: "+34 ",
           US: "+1 ",
         }
-        
+
         const dialCode = countryDialCodes[geoData.country_code] || ""
         if (dialCode) {
           setFormData(prev => ({ ...prev, whatsapp: dialCode }))
@@ -43,9 +70,9 @@ export function SorteoFormSimple() {
         console.error("Error detectando país:", error)
       }
     }
-    
+
     detectCountry()
-  }, [])
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -53,15 +80,16 @@ export function SorteoFormSimple() {
     setIsSubmitting(true)
 
     try {
-      // Guardar lead en la base de datos
+      // Guardar lead en la base de datos con UTMs dinámicos
       const response = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
           pais: paisDetectado,
-          utm_source: "sorteo",
-          utm_medium: "landing",
+          utm_source: utmData.utm_source,
+          utm_medium: utmData.utm_medium,
+          utm_campaign: utmData.utm_campaign,
           intereses: ["sorteo"],
         }),
       })

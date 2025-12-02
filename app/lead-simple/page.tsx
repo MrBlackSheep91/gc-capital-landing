@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { Suspense } from 'react'
 import { SorteoFormSimple } from '@/components/sorteo/sorteo-form-simple'
 
 export const metadata: Metadata = {
@@ -38,7 +39,13 @@ export default function LeadSimplePage() {
         </div>
 
         {/* Formulario Simple */}
-        <SorteoFormSimple />
+        <Suspense fallback={
+          <div className="flex items-center justify-center p-8">
+            <div className="text-gray-500">Cargando formulario...</div>
+          </div>
+        }>
+          <SorteoFormSimple />
+        </Suspense>
 
         {/* Beneficios */}
         <div className="mt-12 bg-white rounded-xl p-6 border border-gray-200">

@@ -417,7 +417,6 @@ export function YouTubeLeadFormIngreso() {
                 Nombre completo <span className="text-red-400">*</span>
               </label>
               <Input
-                ref={nombreInputRef}
                 value={formData.nombre}
                 onChange={(e) => {
                   handleFieldChange("nombre", e.target.value)
@@ -437,7 +436,6 @@ export function YouTubeLeadFormIngreso() {
                 Email <span className="text-red-400">*</span>
               </label>
               <Input
-                ref={emailInputRef}
                 type="email"
                 value={formData.email}
                 onChange={(e) => {
@@ -458,7 +456,6 @@ export function YouTubeLeadFormIngreso() {
                 WhatsApp <span className="text-red-400">*</span>
               </label>
               <Input
-                ref={whatsappInputRef}
                 type="tel"
                 value={formData.whatsapp}
                 onChange={(e) => {

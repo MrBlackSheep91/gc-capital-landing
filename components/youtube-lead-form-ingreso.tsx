@@ -26,26 +26,13 @@ interface FormData {
   gananciaMensualDeseada: string
 }
 
-// Debounce helper
-function debounce<T extends (...args: any[]) => any>(func: T, wait: number) {
-  let timeout: NodeJS.Timeout
-  return function executedFunction(...args: Parameters<T>) {
-    const later = () => {
-      clearTimeout(timeout)
-      func(...args)
-    }
-    clearTimeout(timeout)
-    timeout = setTimeout(later, wait)
-  }
-}
-
 export function YouTubeLeadFormIngreso() {
   const searchParams = useSearchParams()
   const [mounted, setMounted] = useState(false)
-  const initializingRef = useRef(false)
 
   const [currentStep, setCurrentStep] = useState(1)
   const [leadId, setLeadId] = useState<string | null>(null)
+  const [isExistingLead, setIsExistingLead] = useState(false) // TRUE = duplicado, no guardar más datos
   const [formData, setFormData] = useState<FormData>({
     nombre: "",
     email: "",
@@ -61,25 +48,25 @@ export function YouTubeLeadFormIngreso() {
   const [paisDetectado, setPaisDetectado] = useState("")
   const [saving, setSaving] = useState(false)
   const [submittedFlag, setSubmittedFlag] = useState(false)
-
-  // Referencias a los inputs para acceder directamente
-  const nombreInputRef = useRef<HTMLInputElement>(null)
-  const emailInputRef = useRef<HTMLInputElement>(null)
-  const whatsappInputRef = useRef<HTMLInputElement>(null)
+  const [creatingLead, setCreatingLead] = useState(false)
 
   // Cola de guardado para evitar race conditions
   const saveQueueRef = useRef<Array<{ field: string; value: any }>>([])
   const isSavingRef = useRef(false)
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Cola de campos pendientes (cuando leadId aún no está disponible)
-  const pendingFieldsRef = useRef<Array<{ field: string; value: any }>>([])
-
   // Estado de validación
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Procesar cola de guardado (uno por uno, sin solapamientos)
+  // Procesar cola de guardado (solo si no es lead existente)
   const processSaveQueue = useCallback(async () => {
+    // Si es lead existente, no guardar nada más
+    if (isExistingLead) {
+      saveQueueRef.current = []
+      setSaving(false)
+      return
+    }
+
     if (isSavingRef.current || !leadId || saveQueueRef.current.length === 0) {
       return
     }
@@ -103,13 +90,9 @@ export function YouTubeLeadFormIngreso() {
         console.log('✅ Campo guardado exitosamente:', field)
       } else {
         console.error('❌ Error al guardar campo:', response.status)
-        // Re-agregar a la cola si falla
-        saveQueueRef.current.unshift({ field, value })
       }
     } catch (error) {
       console.error("Error saving field:", error)
-      // Re-agregar a la cola si falla
-      saveQueueRef.current.unshift({ field, value })
     } finally {
       isSavingRef.current = false
 
@@ -120,24 +103,22 @@ export function YouTubeLeadFormIngreso() {
         setSaving(false)
       }
     }
-  }, [leadId])
+  }, [leadId, isExistingLead])
 
-  // Agregar campo a la cola de guardado (con debounce)
+  // Agregar campo a la cola de guardado (solo si no es lead existente)
   const saveFieldToNeon = useCallback((field: string, value: any) => {
+    // Si es lead existente, no guardar
+    if (isExistingLead) {
+      console.log('⏭️ Lead existente, omitiendo guardado de:', field)
+      return
+    }
+
     if (value === null || value === undefined || value === '') {
       return
     }
 
-    // Si no hay leadId aún, guardar en cola de pendientes
     if (!leadId) {
-      console.log('⏳ leadId no disponible, guardando en cola pendiente:', field, '=', value)
-      // Actualizar o agregar a pendientes (evitar duplicados)
-      const existingIndex = pendingFieldsRef.current.findIndex(p => p.field === field)
-      if (existingIndex >= 0) {
-        pendingFieldsRef.current[existingIndex].value = value
-      } else {
-        pendingFieldsRef.current.push({ field, value })
-      }
+      console.log('⏳ leadId no disponible, omitiendo:', field)
       return
     }
 
@@ -153,38 +134,20 @@ export function YouTubeLeadFormIngreso() {
     // Procesar después de debounce
     saveTimeoutRef.current = setTimeout(() => {
       processSaveQueue()
-    }, 500) // Debounce más corto ahora que tenemos cola
-  }, [leadId, processSaveQueue])
+    }, 500)
+  }, [leadId, isExistingLead, processSaveQueue])
 
   // Marcar como montado después del primer render
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Procesar campos pendientes cuando leadId esté disponible
+  // Detectar geolocalización al montar (sin crear lead)
   useEffect(() => {
-    if (leadId && pendingFieldsRef.current.length > 0) {
-      console.log('🔄 Procesando campos pendientes:', pendingFieldsRef.current)
-      // Mover todos los pendientes a la cola de guardado
-      pendingFieldsRef.current.forEach(({ field, value }) => {
-        saveQueueRef.current.push({ field, value })
-      })
-      pendingFieldsRef.current = []
-      setSaving(true)
-      processSaveQueue()
-    }
-  }, [leadId, processSaveQueue])
+    if (!mounted) return
 
-  // Initialize lead on mount (solo una vez)
-  useEffect(() => {
-    // Solo ejecutar si está montado y no hay leadId
-    if (!mounted || leadId || initializingRef.current) return
-
-    initializingRef.current = true
-
-    const initializeLead = async () => {
+    const detectGeo = async () => {
       try {
-        // Get geolocation
         const geoResponse = await fetch("https://ipapi.co/json/")
         const geoData = await geoResponse.json()
         setPaisDetectado(geoData.country_code)
@@ -207,53 +170,27 @@ export function YouTubeLeadFormIngreso() {
         const urlEmail = searchParams.get("email") || ""
         const urlWhatsapp = searchParams.get("phone") || searchParams.get("whatsapp") || dialCode
 
-        console.log('📋 Datos de URL detectados:', { urlNombre, urlEmail, urlWhatsapp })
-
         setFormData(prev => ({
           ...prev,
           nombre: urlNombre,
           email: urlEmail,
           whatsapp: urlWhatsapp
         }))
-
-        // Create lead in NEON
-        console.log('🆕 Creando nuevo lead...')
-        const response = await fetch("/api/leads", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            nombre: urlNombre,
-            email: urlEmail,
-            whatsapp: urlWhatsapp,
-            utm_source: searchParams.get("utm_source") || "ingreso",
-            utm_campaign: searchParams.get("utm_campaign") || null,
-            utm_medium: searchParams.get("utm_medium") || "video",
-            pais: geoData.country_code,
-          }),
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          const newLeadId = data.data?.leadId || data.leadId
-          console.log('✅ Lead creado:', newLeadId)
-          setLeadId(newLeadId)
-        } else {
-          console.error('❌ Error creando lead:', response.status)
-        }
       } catch (error) {
-        console.error("Error initializing lead:", error)
-      } finally {
-        initializingRef.current = false
+        console.error("Error detecting geo:", error)
       }
     }
 
-    initializeLead()
-  }, [mounted]) // Solo depende de mounted
+    detectGeo()
+  }, [mounted, searchParams])
 
   const handleFieldChange = (field: keyof FormData, value: any) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value }
-      saveFieldToNeon(field, value)
+      // Solo guardar automáticamente si ya tenemos leadId y no es existente
+      if (leadId && !isExistingLead) {
+        saveFieldToNeon(field, value)
+      }
       return updated
     })
   }
@@ -296,29 +233,58 @@ export function YouTubeLeadFormIngreso() {
     return Object.keys(newErrors).length === 0
   }
 
-  // Guardar todos los campos del Step 1 explícitamente
-  const saveStep1Fields = async () => {
-    if (!leadId) return
+  // Crear lead al avanzar del Step 1 (con detección de duplicados)
+  const createLeadOnStep1 = async (): Promise<boolean> => {
+    setCreatingLead(true)
 
-    const fieldsToSave = [
-      { field: 'nombre', value: formData.nombre },
-      { field: 'email', value: formData.email },
-      { field: 'whatsapp', value: formData.whatsapp },
-    ]
+    try {
+      console.log('🆕 Creando lead con datos:', {
+        nombre: formData.nombre,
+        email: formData.email,
+        whatsapp: formData.whatsapp
+      })
 
-    for (const { field, value } of fieldsToSave) {
-      if (value && value.trim()) {
-        try {
-          await fetch("/api/leads", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ leadId, field, value: value.trim() }),
-          })
-          console.log(`✅ Campo ${field} guardado explícitamente`)
-        } catch (error) {
-          console.error(`❌ Error guardando ${field}:`, error)
+      const response = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: formData.nombre.trim(),
+          email: formData.email.trim(),
+          whatsapp: formData.whatsapp.trim(),
+          utm_source: searchParams.get("utm_source") || "ingreso",
+          utm_campaign: searchParams.get("utm_campaign") || null,
+          utm_medium: searchParams.get("utm_medium") || "video",
+          pais: paisDetectado,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        const newLeadId = data.data?.leadId || data.leadId
+        const existing = data.data?.isExisting || data.isExisting || false
+
+        console.log('✅ Respuesta del servidor:', { leadId: newLeadId, isExisting: existing })
+
+        setLeadId(newLeadId)
+        setIsExistingLead(existing)
+
+        if (existing) {
+          console.log('🔄 Lead ya existía, no se guardarán más datos')
         }
+
+        return true
+      } else {
+        console.error('❌ Error creando lead:', data.error)
+        setErrors(prev => ({ ...prev, general: data.error || 'Error al registrar' }))
+        return false
       }
+    } catch (error) {
+      console.error("Error creating lead:", error)
+      setErrors(prev => ({ ...prev, general: 'Error de conexión' }))
+      return false
+    } finally {
+      setCreatingLead(false)
     }
   }
 
@@ -326,19 +292,23 @@ export function YouTubeLeadFormIngreso() {
   const TOTAL_STEPS = 4
 
   const handleNextStep = async () => {
-    // Validar Step 1 antes de avanzar
+    // Validar y crear lead en Step 1
     if (currentStep === 1) {
       if (!validateStep1()) {
-        return // No avanzar si hay errores
+        return // No avanzar si hay errores de validación
       }
-      // Guardar campos explícitamente antes de avanzar
-      await saveStep1Fields()
+
+      // Crear lead (o detectar duplicado)
+      const success = await createLeadOnStep1()
+      if (!success) {
+        return // No avanzar si hubo error
+      }
     }
 
     if (currentStep < TOTAL_STEPS) {
       setSaving(true)
       try {
-        await new Promise(resolve => setTimeout(resolve, 800))
+        await new Promise(resolve => setTimeout(resolve, 500))
       } finally {
         setSaving(false)
       }
@@ -355,7 +325,8 @@ export function YouTubeLeadFormIngreso() {
   }
 
   const handleWhatsAppClick = async () => {
-    if (leadId) {
+    // Solo trackear si es lead nuevo (no existente)
+    if (leadId && !isExistingLead) {
       try {
         await fetch("/api/leads", {
           method: "PATCH",
@@ -383,10 +354,11 @@ export function YouTubeLeadFormIngreso() {
     window.open(WHATSAPP_GROUP_LINK, "_blank")
   }
 
-  // Mark as submitted when reaching final step (step 4)
+  // Mark as submitted when reaching final step (step 4) - only for new leads
   useEffect(() => {
     async function markSubmitted() {
-      if (!leadId || submittedFlag || currentStep !== TOTAL_STEPS) return
+      // No marcar como submitted si es lead existente
+      if (!leadId || submittedFlag || currentStep !== TOTAL_STEPS || isExistingLead) return
 
       try {
         await fetch("/api/leads", {
@@ -407,7 +379,7 @@ export function YouTubeLeadFormIngreso() {
     }
 
     markSubmitted()
-  }, [currentStep, leadId, submittedFlag])
+  }, [currentStep, leadId, submittedFlag, isExistingLead])
 
   if (!mounted) return null
 
@@ -502,11 +474,18 @@ export function YouTubeLeadFormIngreso() {
               {errors.whatsapp && <p className="text-red-400 text-sm mt-1">{errors.whatsapp}</p>}
             </div>
 
+            {errors.general && (
+              <p className="text-red-400 text-sm text-center bg-red-900/20 p-3 rounded-lg">
+                {errors.general}
+              </p>
+            )}
+
             <Button
               onClick={handleNextStep}
-              className="w-full bg-[#c2a255] hover:bg-[#d4b366] text-[#1a1a1a] font-semibold py-3"
+              disabled={creatingLead}
+              className="w-full bg-[#c2a255] hover:bg-[#d4b366] text-[#1a1a1a] font-semibold py-3 disabled:opacity-50"
             >
-              Continuar
+              {creatingLead ? 'Registrando...' : 'Continuar'}
             </Button>
           </div>
         )}
@@ -687,10 +666,21 @@ export function YouTubeLeadFormIngreso() {
             <div className="space-y-4 text-white">
               <div className="bg-[#1a1a1a] rounded-lg p-6 border border-[#c2a255]/30">
                 <CheckCircle className="w-10 h-10 text-[#c2a255] mb-3" />
-                <h3 className="text-2xl font-bold mb-2">¡Listo, ya guardamos tus respuestas!</h3>
-                <p className="text-gray-300">
-                  Ahora únete a nuestro grupo privado de WhatsApp para recibir ofertas, señales y soporte directo.
-                </p>
+                {isExistingLead ? (
+                  <>
+                    <h3 className="text-2xl font-bold mb-2">¡Bienvenido de nuevo!</h3>
+                    <p className="text-gray-300">
+                      Ya estás registrado. Accede al grupo de WhatsApp para continuar conectado.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-2xl font-bold mb-2">¡Listo, ya guardamos tus respuestas!</h3>
+                    <p className="text-gray-300">
+                      Ahora únete a nuestro grupo privado de WhatsApp para recibir ofertas, señales y soporte directo.
+                    </p>
+                  </>
+                )}
               </div>
 
               <div className="bg-[#1a1a1a] rounded-lg p-6 border border-[#c2a255]/30">

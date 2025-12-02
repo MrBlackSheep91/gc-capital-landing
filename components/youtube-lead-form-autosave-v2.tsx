@@ -84,6 +84,12 @@ export function YouTubeLeadFormAutoSaveV2() {
   const isSavingRef = useRef(false)
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Cola de campos pendientes (cuando leadId aún no está disponible)
+  const pendingFieldsRef = useRef<Array<{ field: string; value: any }>>([])
+
+  // Estado de validación
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
   // Procesar cola de guardado (uno por uno, sin solapamientos)
   const processSaveQueue = useCallback(async () => {
     if (isSavingRef.current || !leadId || saveQueueRef.current.length === 0) {
@@ -130,12 +136,20 @@ export function YouTubeLeadFormAutoSaveV2() {
 
   // Agregar campo a la cola de guardado (con debounce)
   const saveFieldToNeon = useCallback((field: string, value: any) => {
-    if (!leadId) {
-      console.warn('❌ No leadId disponible para guardar campo:', field)
+    if (value === null || value === undefined || value === '') {
       return
     }
 
-    if (value === null || value === undefined) {
+    // Si no hay leadId aún, guardar en cola de pendientes
+    if (!leadId) {
+      console.log('⏳ leadId no disponible, guardando en cola pendiente:', field, '=', value)
+      // Actualizar o agregar a pendientes (evitar duplicados)
+      const existingIndex = pendingFieldsRef.current.findIndex(p => p.field === field)
+      if (existingIndex >= 0) {
+        pendingFieldsRef.current[existingIndex].value = value
+      } else {
+        pendingFieldsRef.current.push({ field, value })
+      }
       return
     }
 
@@ -158,6 +172,20 @@ export function YouTubeLeadFormAutoSaveV2() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Procesar campos pendientes cuando leadId esté disponible
+  useEffect(() => {
+    if (leadId && pendingFieldsRef.current.length > 0) {
+      console.log('🔄 Procesando campos pendientes:', pendingFieldsRef.current)
+      // Mover todos los pendientes a la cola de guardado
+      pendingFieldsRef.current.forEach(({ field, value }) => {
+        saveQueueRef.current.push({ field, value })
+      })
+      pendingFieldsRef.current = []
+      setSaving(true)
+      processSaveQueue()
+    }
+  }, [leadId, processSaveQueue])
 
   // Initialize lead on mount (solo una vez)
   useEffect(() => {
@@ -258,15 +286,72 @@ export function YouTubeLeadFormAutoSaveV2() {
     })
   }
 
+  // Validar campos del Step 1
+  const validateStep1 = (): boolean => {
+    const newErrors: Record<string, string> = {}
+
+    if (!formData.nombre.trim()) {
+      newErrors.nombre = 'El nombre es requerido'
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'El email es requerido'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Ingresa un email válido'
+    }
+
+    if (!formData.whatsapp.trim() || formData.whatsapp.trim().length < 8) {
+      newErrors.whatsapp = 'El WhatsApp es requerido (mínimo 8 dígitos)'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  // Guardar todos los campos del Step 1 explícitamente
+  const saveStep1Fields = async () => {
+    if (!leadId) return
+
+    const fieldsToSave = [
+      { field: 'nombre', value: formData.nombre },
+      { field: 'email', value: formData.email },
+      { field: 'whatsapp', value: formData.whatsapp },
+    ]
+
+    for (const { field, value } of fieldsToSave) {
+      if (value && value.trim()) {
+        try {
+          await fetch("/api/leads", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ leadId, field, value: value.trim() }),
+          })
+          console.log(`✅ Campo ${field} guardado explícitamente`)
+        } catch (error) {
+          console.error(`❌ Error guardando ${field}:`, error)
+        }
+      }
+    }
+  }
+
   const handleNextStep = async () => {
+    // Validar Step 1 antes de avanzar
+    if (currentStep === 1) {
+      if (!validateStep1()) {
+        return // No avanzar si hay errores
+      }
+      // Guardar campos explícitamente antes de avanzar
+      await saveStep1Fields()
+    }
+
     if (currentStep < 5) {
       setSaving(true)
       try {
-        await new Promise(resolve => setTimeout(resolve, 1200))
+        await new Promise(resolve => setTimeout(resolve, 800))
       } finally {
         setSaving(false)
       }
-      
+
       setCurrentStep(prev => prev + 1)
       triggerConfetti()
     }
@@ -366,52 +451,64 @@ export function YouTubeLeadFormAutoSaveV2() {
             
             <div>
               <label className="block text-white font-semibold mb-2">
-                Nombre completo
+                Nombre completo <span className="text-red-400">*</span>
               </label>
               <Input
                 ref={nombreInputRef}
                 value={formData.nombre}
-                onChange={(e) => handleFieldChange("nombre", e.target.value)}
-                className="bg-[#1a1a1a] border-[#c2a255]/30 text-white"
+                onChange={(e) => {
+                  handleFieldChange("nombre", e.target.value)
+                  if (errors.nombre) setErrors(prev => ({ ...prev, nombre: '' }))
+                }}
+                className={`bg-[#1a1a1a] border-[#c2a255]/30 text-white ${errors.nombre ? 'border-red-500' : ''}`}
                 placeholder="Tu nombre"
                 autoComplete="given-name family-name"
                 name="fullname"
                 id="fullname"
               />
+              {errors.nombre && <p className="text-red-400 text-sm mt-1">{errors.nombre}</p>}
             </div>
 
             <div>
               <label className="block text-white font-semibold mb-2">
-                Email
+                Email <span className="text-red-400">*</span>
               </label>
               <Input
                 ref={emailInputRef}
                 type="email"
                 value={formData.email}
-                onChange={(e) => handleFieldChange("email", e.target.value)}
-                className="bg-[#1a1a1a] border-[#c2a255]/30 text-white"
+                onChange={(e) => {
+                  handleFieldChange("email", e.target.value)
+                  if (errors.email) setErrors(prev => ({ ...prev, email: '' }))
+                }}
+                className={`bg-[#1a1a1a] border-[#c2a255]/30 text-white ${errors.email ? 'border-red-500' : ''}`}
                 placeholder="tu@email.com"
                 autoComplete="email"
                 name="email"
                 id="email"
               />
+              {errors.email && <p className="text-red-400 text-sm mt-1">{errors.email}</p>}
             </div>
 
             <div>
               <label className="block text-white font-semibold mb-2">
-                WhatsApp
+                WhatsApp <span className="text-red-400">*</span>
               </label>
               <Input
                 ref={whatsappInputRef}
                 type="tel"
                 value={formData.whatsapp}
-                onChange={(e) => handleFieldChange("whatsapp", e.target.value)}
-                className="bg-[#1a1a1a] border-[#c2a255]/30 text-white"
+                onChange={(e) => {
+                  handleFieldChange("whatsapp", e.target.value)
+                  if (errors.whatsapp) setErrors(prev => ({ ...prev, whatsapp: '' }))
+                }}
+                className={`bg-[#1a1a1a] border-[#c2a255]/30 text-white ${errors.whatsapp ? 'border-red-500' : ''}`}
                 placeholder="+598 99 123 456"
                 autoComplete="tel-national"
                 name="phone"
                 id="phone"
               />
+              {errors.whatsapp && <p className="text-red-400 text-sm mt-1">{errors.whatsapp}</p>}
             </div>
 
             <Button
